@@ -1,6 +1,8 @@
 package com.employeeproject.employeedetail.Controller;
 
+import com.employeeproject.employeedetail.advices.ApiResponse;
 import com.employeeproject.employeedetail.dto.EmployeeDTO;
+import com.employeeproject.employeedetail.exception.ResourceNotFoundException;
 import com.employeeproject.employeedetail.services.EmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 
@@ -34,9 +37,11 @@ public class EmployeeController {
     public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable(name = "employeeId") Long id){
         Optional<EmployeeDTO> employeeDTO = employeeService.getEmployeeById(id);
         return  employeeDTO.map(employeeDTO1->ResponseEntity.ok(employeeDTO1))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(()->new ResourceNotFoundException("Employee  not found "+id));
 
     }
+
+
 
     @GetMapping()
     public ResponseEntity<List<EmployeeDTO>> getAllEmployees(@RequestParam(required = false,name="inputAge") Integer age,
@@ -45,9 +50,9 @@ public class EmployeeController {
     }
 
     @PostMapping
-    public ResponseEntity<EmployeeDTO> createEmployee(@RequestBody @Valid EmployeeDTO inputEmployee){
+    public ResponseEntity<ApiResponse<EmployeeDTO>> createEmployee(@RequestBody @Valid EmployeeDTO inputEmployee){
         EmployeeDTO savedEmployee = employeeService.createEmployee(inputEmployee);
-        return new ResponseEntity<>(savedEmployee, HttpStatus.CREATED);
+        return new ResponseEntity<>(new ApiResponse<>(savedEmployee), HttpStatus.CREATED);
 
     }
 
